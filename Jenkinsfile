@@ -1,5 +1,5 @@
 #!/usr/bin/env groovy
-DELIVER = (env.JOB_NAME as String).endsWith("-deliver")   
+//DELIVER = (env.JOB_NAME as String).endsWith("-deliver")   
 
 pipeline {
     agent any 
@@ -19,11 +19,11 @@ pipeline {
 		}
 
 		stage('Ansible_Task') {
-		when {
+		//when {
                
-            expression { return DELIVER ==~ /(?i)(Y|YES|T|TRUE|ON|RUN)/ }   
+            //expression { return DELIVER ==~ /(?i)(Y|YES|T|TRUE|ON|RUN)/ }   
               
-           }
+           //}
 	 input {
                 message "Should we continue?"
                 ok "Yes, we should."
