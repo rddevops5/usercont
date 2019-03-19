@@ -1,0 +1,130 @@
+---
+##############################################################################################################
+#Add new users to the groups that doesnot exist 
+##############################################################################################################
+- name: Add new user
+  user:
+    name={{ item }}
+    state=present
+    groups=wheel
+    shell=/bin/bash
+  with_items:
+  - "{{ username }}"
+  tags: [ 'never', 'Add_new_user' ]
+  
+##############################################################################################################
+# Change password for the new user 
+##############################################################################################################  
+
+- name: Change Password
+  user:
+    name: pcmsadmin
+    password: "$1$3Zdze7Vx$R0kQSV9FxzF/gYUzsvr7s0"
+    update_password: always
+  tags: [ 'never', 'Changepassword' ]
+  
+##############################################################################################################
+#Generate public key for newly created user
+##############################################################################################################
+
+- name: generate ssh key for user
+  user:
+    name={{ item }}
+    generate_ssh_key=yes
+    ssh_key_bits=4096
+    ssh_key_file=.ssh/id_rsa
+  with_items:
+  - "{{ username }}"
+  tags: [ 'never', 'Generate_ssh_keys' ]
+
+##############################################################################################################
+#Copy public key to user account [Note : copy host public key to Target mashine authitenticate ansible task]  
+##############################################################################################################
+
+- name: update authorized kays for user
+  authorized_key:
+    user: pcmsadmin
+    state: present
+    key: "{{ lookup('file', '~/.ssh/id_rsa1.pub') }}"
+  tags: [ 'never', 'Copy_pub_key' ]
+
+##############################################################################################################
+#Grant group with the sudo permissions
+##############################################################################################################  
+
+- name: Allow 'wheel' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+  tags: [ 'never', 'Grant_Sudo_to_group' ]
+
+##############################################################################################################
+#Grant sudo access to user
+##############################################################################################################
+
+- name: Add user to sudo group to Grant access rights
+  command: usermod -aG wheel {{ item }}
+  with_items:
+  - "{{ username }}"
+  tags: [ 'never', 'Grant_sudo_Access' ]
+
+##############################################################################################################
+#Revoke sudo access from user
+##############################################################################################################
+
+- name: Remove user from to sudo group to remove access rights
+  command: sudo gpasswd -d {{ item }} wheel
+  with_items:
+  - "{{ username }}"
+  tags: [ 'never', 'Revoke_sudo_Access' ]
+  
+##############################################################################################################
+#Create new group if the group doesnot exist to control users
+##############################################################################################################  
+
+- name: Create new group if the group doesnot exist to control users
+  group:
+    name={{ item }}
+    state=present
+  with_items:
+  - "{{ usergroup }}"
+  tags: [ 'never', 'Add_new_group' ]
+
+##############################################################################################################
+#Add new users to the groups that doesnot exist 
+##############################################################################################################
+#delete Existing group
+- name: delete several group
+  group:
+    name={{ item }}
+    state=absent
+  with_items:
+  - "{{ usergroup }}"
+  tags: [ 'never', 'Remove_group' ]
+
+##############################################################################################################
+#   Delete  user from the server if doesnot required [Only Temporary created servers ]  
+##############################################################################################################  
+
+- name: Task to delete several users
+  user:
+    name={{ item }}
+    state=absent
+  with_items:
+  - "{{ username }}"
+  tags: [ 'never', 'Remove_user' ]  
+
+##############################################################################################################
+# create file using on all target mashine   
+##############################################################################################################   
+
+- name: create a file on target host machine
+  file:
+    path: /tmp/test.txt
+    state: touch
+    mode: "u=rw,g=r,o=r"
+  tags: [ 'never', 'Createfile' ]
+ 
