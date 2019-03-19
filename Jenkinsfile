@@ -2,7 +2,7 @@
 DELIVER = (env.JOB_NAME as String).endsWith("-deliver")   
 
 pipeline {
-    agent {node'agent-01' } 
+    agent any 
 	
         stages {
 		
