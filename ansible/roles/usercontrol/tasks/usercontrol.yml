@@ -45,7 +45,7 @@
   authorized_key:
     user: pcmsadmin
     state: present
-    key: "{{ lookup('file', '~/.ssh/id_rsa1.pub') }}"
+    key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
   tags: [ 'never', 'Copy_pub_key' ]
 
 ##############################################################################################################
